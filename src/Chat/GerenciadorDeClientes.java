@@ -15,8 +15,9 @@ public class GerenciadorDeClientes extends Thread {
 	private BufferedReader leitor;
 	private PrintWriter escritor;
 	//private static final Map<String,GerenciadorDeClientes> clientes = new HashMap<String,GerenciadorDeClientes>();
-	private static volatile  boolean respostaCliente = false;
-	private static volatile  boolean flagTimer = false;
+	private static volatile  boolean respostaCliente = false, flagTimer = false;
+	private boolean clienteNotificado = false;
+	private boolean finalizado = false;
 	private long tempo1, tempo2;
 	private String msg;
 	MyTimer t1;
@@ -37,69 +38,36 @@ public class GerenciadorDeClientes extends Thread {
 			int valor2;
 
 			tempo1 = System.currentTimeMillis();
-			ServerRecebedor r1 = new ServerRecebedor (leitor);
-			t1 = new MyTimer();
+			ServerRecebedor r1 = new ServerRecebedor (leitor);   //inicia o leitor
+			t1 = new MyTimer();   //inicia um timer de 30 segundos
 			System.out.println("novo cliente");
 
-			while(true){
+			while(!finalizado){
 
 				if(flagTimer && !respostaCliente){   //quando nao tem resposta do 
-					System.out.println("timer");
-					flagTimer = false;
-					t1 = new MyTimer();
+					if(!clienteNotificado) {   //nao teve nenhuma resposta e o cliente ainda nao foi notificado
+						clienteNotificado = true;
+						escritor.println("::check");
+						flagTimer = false;
+						t1 = new MyTimer();
+						System.out.println(".timer com check");
+					}else {   //cliente ja foi notificado da ausencia de msg
+						//encerra a cominucacao
+						this.cliente.shutdownInput();
+						this.cliente.shutdownOutput();
+						this.cliente.close();
+						finalizado = true;
+						System.out.println("socket finalizado");
+					}
 				}
 
 				if(flagTimer && respostaCliente){   //quando nao tem resposta do 
-					System.out.println("resp");
+					System.out.println(".timer com resp");
 					respostaCliente = false;
 					flagTimer = false;
+					clienteNotificado = false;
 					t1 = new MyTimer();
 				}
-
-				//				if(!flagTimer){
-				//					System.out.println("no");
-				//					flagTimer = false;
-				//				}
-
-				//				if(!respostaCliente){
-				//					respostaCliente = true;
-				//				}//if
-				//
-				//				Thread t = new Thread(new Runnable() {
-				//					@Override
-				//					public void run() {
-				//						msg = leitor.readLine();
-				//					}
-				//				}, "t");
-				//				t.start();
-
-				//if(temo)
-				//				msg = leitor.readLine();
-				//				if(msg.equalsIgnoreCase("::sair")){
-				//					this.cliente.close();
-				//				}else if(msg.startsWith("::D") && msg.length() > 3){
-				//					dado = msg.substring(3, msg.length());
-				//					valor2 = Integer.parseInt(dado);
-				//					Servidor.atualizaDado1(valor2);
-				//					//System.out.println(dado);
-				//				}else{
-				//					//System.out.println(msg);
-				//				}
-				//	
-
-
-				//		        new Thread(new Runnable() {
-				//		            @Override
-				//		            public void run() {
-				//		                for (int i = 0; i < QUANTIDADE; i++) {
-				//		                    boolean novo = VALORES.add(++varCompartilhada);
-				//		                    if (!novo) {
-				//		                        System.out.println("Já existe: " + varCompartilhada);
-				//		                    }
-				//		                }
-				//		            }
-				//		        }).start();
-
 
 			}//while
 		} catch (IOException e) {

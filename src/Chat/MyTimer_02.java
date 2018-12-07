@@ -2,19 +2,21 @@ package Chat;
 
 import java.io.BufferedReader;
 
-public class MyTimer implements Runnable {
+public class MyTimer_02 implements Runnable {
 
 	boolean encerrar = false;
+	long tempo;
 	
-	public MyTimer() {   //construtor
+	public MyTimer_02(long tempo) {   //construtor
+		this.tempo = tempo;
 		Thread thread1 = new Thread(this);
 		thread1.start();
 	}
 	@Override
 	public void run() {
 		try {
-			Thread.sleep(15000);
-			GerenciadorDeClientes.attFlagTimer();
+			Thread.sleep(tempo);
+			//GerenciadorDeClientes.attFlagTimer();
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
